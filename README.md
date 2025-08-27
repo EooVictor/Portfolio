@@ -33,7 +33,7 @@ Repositório do meu **portfólio pessoal**, desenvolvido com **HTML**, **CSS** e
 
 ## 📊 Linguagens Mais Usadas
 
-![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=EooVictor&layout=compact&hide_border=true&theme=dark)
+![Linguagens mais usadas](https://github-readme-stats.vercel.app/api/top-langs/?username=EooVictor&repo=Portfolio&layout=compact&theme=dracula)
 
 
 ---
