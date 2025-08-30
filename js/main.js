@@ -2,7 +2,6 @@
 (function initTheme(){
   const saved = localStorage.getItem('theme');
   if (saved) document.documentElement.setAttribute('data-theme', saved);
-  // Atualiza os ícones assim que a página carrega
   if (window.lucide) {
     lucide.createIcons();
   }
@@ -43,7 +42,6 @@ const filters = [
   { id: 'Frontend', label: 'Front-end' }
 ];
 
-// Render filtros
 const filtersEl = document.getElementById('filters');
 let activeFilter = 'all';
 function renderFilters(){
@@ -58,7 +56,6 @@ function renderFilters(){
   });
 }
 
-// Render cards de projetos
 const grid = document.getElementById('projects-grid');
 function renderProjects(){
   if (!grid) return;
@@ -80,34 +77,40 @@ function renderProjects(){
       `;
       grid.appendChild(card);
     });
-  // Recria os ícones após renderizar os projetos
   if (window.lucide) {
     lucide.createIcons();
   }
 }
 
-// Renderiza tudo na carga inicial
 document.addEventListener('DOMContentLoaded', () => {
     renderFilters();
     renderProjects();
 });
 
-
-// Footer year
 document.getElementById('year').textContent = new Date().getFullYear();
 
-// ===== Navegação com offset fixo do header =====
+// ===== Navegação com Scroll Suave =====
 document.querySelectorAll('a[href^="#"]').forEach(a => {
   a.addEventListener('click', (e) => {
     const id = a.getAttribute('href');
-    if (id === '#') return;
+    if (id === '#') return; // Ignora links vazios
     const target = document.querySelector(id);
     if (target) {
       e.preventDefault();
+      
       const header = document.querySelector('header');
-      const headerOffset = header ? header.offsetHeight : 82;
-      const y = target.getBoundingClientRect().top + window.pageYOffset - headerOffset;
-      window.scrollTo({ top: y, behavior: 'smooth' });
+      const headerOffset = header.offsetHeight;
+      const isHeaderFixed = window.getComputedStyle(header).position === 'fixed';
+      
+      // Calcula a posição de destino, subtraindo o offset do cabeçalho APENAS se ele for fixo
+      const targetPosition = target.getBoundingClientRect().top + window.pageYOffset;
+      const offsetPosition = targetPosition - (isHeaderFixed ? headerOffset : 0);
+      
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+
       try { history.replaceState(null, '', id); } catch (_) {}
     }
   });
@@ -117,7 +120,6 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
 (function(){
   const box = document.querySelector('.avatar');
   if (!box) return;
-
   const img = new Image();
   img.src = 'assets/avatar.jpg'; 
   img.alt = 'Foto de Victor Raphael';
@@ -143,7 +145,6 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
 // ===== EFEITO FADE-IN AO ROLAR =====
 document.addEventListener("DOMContentLoaded", () => {
   const sections = document.querySelectorAll('.fade-in-section');
-
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
@@ -153,32 +154,30 @@ document.addEventListener("DOMContentLoaded", () => {
   }, {
     rootMargin: "0px 0px -50px 0px"
   });
-
   sections.forEach(section => {
     observer.observe(section);
   });
 });
 
-// ===== BOTÃO VOLTAR AO TOPO (NOVO) =====
+// ===== BOTÃO VOLTAR AO TOPO =====
 const backToTopButton = document.getElementById('back-to-top');
-
-window.addEventListener('scroll', () => {
-  if (window.pageYOffset > 300) { // Mostra o botão após 300px de rolagem
-    backToTopButton.classList.add('visible');
-  } else {
-    backToTopButton.classList.remove('visible');
-  }
-});
-
-backToTopButton.addEventListener('click', () => {
-  window.scrollTo({
-    top: 0,
-    behavior: 'smooth'
+if (backToTopButton) {
+  window.addEventListener('scroll', () => {
+    if (window.pageYOffset > 300) { // Mostra o botão após 300px de rolagem
+      backToTopButton.classList.add('visible');
+    } else {
+      backToTopButton.classList.remove('visible');
+    }
   });
-});
+  backToTopButton.addEventListener('click', () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  });
+}
 
 // ===== Renderiza Ícones Lucide =====
-// Chamada final para garantir que todos os ícones sejam renderizados
 if (window.lucide) {
     lucide.createIcons();
 }
