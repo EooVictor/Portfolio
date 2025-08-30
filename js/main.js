@@ -2,6 +2,10 @@
 (function initTheme(){
   const saved = localStorage.getItem('theme');
   if (saved) document.documentElement.setAttribute('data-theme', saved);
+  // Atualiza os ícones assim que a página carrega
+  if (window.lucide) {
+    lucide.createIcons();
+  }
 })();
 document.getElementById('themeToggle').addEventListener('click', () => {
   const current = document.documentElement.getAttribute('data-theme');
@@ -15,7 +19,7 @@ const projects = [
   {
     title: 'SuporteBot — Assistente de Suporte',
     year: 2025,
-    description: 'Chatbot para suporte técnico construído por mim para acelerar o atendimento e padronizar respostas.',
+    description: 'Chatbot para suporte técnico construído por mim para acelerar o atendimento e padronizar respostas, com API para consulta em base de conhecimento.',
     highlights: ['Arquitetura de KB + API', 'Busca por erros/integrações', 'Redução do tempo de atendimento'],
     tech: ['PHP', 'JSON'],
     tags: ['IA', 'Backend'],
@@ -24,7 +28,7 @@ const projects = [
   {
     title: 'Portfólio — Site Pessoal',
     year: new Date().getFullYear(),
-    description: 'Meu site pessoal, responsivo e acessível, feito com HTML, CSS e JS.',
+    description: 'Meu site pessoal, responsivo e acessível, feito com HTML, CSS e JS. Design e código por mim.',
     highlights: ['Design limpo e responsivo', 'Scroll suave e acessibilidade', 'Publicação fácil (GitHub Pages)'],
     tech: ['HTML', 'CSS', 'JavaScript'],
     tags: ['Frontend'],
@@ -43,6 +47,7 @@ const filters = [
 const filtersEl = document.getElementById('filters');
 let activeFilter = 'all';
 function renderFilters(){
+  if (!filtersEl) return;
   filtersEl.innerHTML = '';
   filters.forEach(f => {
     const btn = document.createElement('button');
@@ -56,6 +61,7 @@ function renderFilters(){
 // Render cards de projetos
 const grid = document.getElementById('projects-grid');
 function renderProjects(){
+  if (!grid) return;
   grid.innerHTML = '';
   projects
     .filter(p => activeFilter === 'all' || p.tags.includes(activeFilter))
@@ -64,47 +70,56 @@ function renderProjects(){
       card.className = 'card project';
       card.innerHTML = `
         <div class="meta">${p.year} • ${p.tags.map(t=>`<span class="badge-mini">${t}</span>`).join(' ')}</div>
-        <h3>${p.title}</h3>
+        <h3><a href="${p.repo || '#'}" target="_blank" rel="noopener">${p.title}</a></h3>
         <p>${p.description}</p>
         ${p.highlights ? `<p class="muted" style="margin:8px 0 0;">${p.highlights.join(' • ')}</p>` : ''}
         <div class="badges">${p.tech.map(t=>`<span class="badge-mini">${t}</span>`).join('')}</div>
         <div class="links" style="margin-top:10px;">
-          ${p.repo && p.repo !== '#' ? `<a class="btn ghost" href="${p.repo}" target="_blank" rel="noopener">Código</a>` : ''}
+          ${p.repo && p.repo !== '#' ? `<a class="btn ghost" href="${p.repo}" target="_blank" rel="noopener"><i data-lucide="github"></i> <span>Código</span></a>` : ''}
         </div>
       `;
       grid.appendChild(card);
     });
+  // Recria os ícones após renderizar os projetos
+  if (window.lucide) {
+    lucide.createIcons();
+  }
 }
 
-renderFilters();
-renderProjects();
+// Renderiza tudo na carga inicial
+document.addEventListener('DOMContentLoaded', () => {
+    renderFilters();
+    renderProjects();
+});
+
 
 // Footer year
 document.getElementById('year').textContent = new Date().getFullYear();
 
 // ===== Navegação com offset fixo do header =====
-document.querySelectorAll('nav.navlinks a[href^="#"]').forEach(a => {
+document.querySelectorAll('a[href^="#"]').forEach(a => {
   a.addEventListener('click', (e) => {
-    const id = a.getAttribute('href').slice(1);
-    const target = document.getElementById(id);
+    const id = a.getAttribute('href');
+    if (id === '#') return;
+    const target = document.querySelector(id);
     if (target) {
       e.preventDefault();
-      const headerOffset = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-offset')) || 0;
+      const header = document.querySelector('header');
+      const headerOffset = header ? header.offsetHeight : 82;
       const y = target.getBoundingClientRect().top + window.pageYOffset - headerOffset;
       window.scrollTo({ top: y, behavior: 'smooth' });
-      try { history.replaceState(null, '', '#' + id); } catch (_) {}
+      try { history.replaceState(null, '', id); } catch (_) {}
     }
   });
 });
 
 // ===== Avatar loader =====
-// Tenta carregar assets/avatar.jpg; se falhar, mostra avatar SVG com iniciais VR
 (function(){
   const box = document.querySelector('.avatar');
   if (!box) return;
 
   const img = new Image();
-  img.src = 'assets/avatar.jpg?v=' + Date.now(); // evita cache ao trocar foto
+  img.src = 'assets/avatar.jpg'; 
   img.alt = 'Foto de Victor Raphael';
   img.className = 'avatar-img';
   img.onload = () => { box.innerHTML = ''; box.appendChild(img); };
@@ -124,3 +139,46 @@ document.querySelectorAll('nav.navlinks a[href^="#"]').forEach(a => {
     `;
   };
 })();
+
+// ===== EFEITO FADE-IN AO ROLAR =====
+document.addEventListener("DOMContentLoaded", () => {
+  const sections = document.querySelectorAll('.fade-in-section');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, {
+    rootMargin: "0px 0px -50px 0px"
+  });
+
+  sections.forEach(section => {
+    observer.observe(section);
+  });
+});
+
+// ===== BOTÃO VOLTAR AO TOPO (NOVO) =====
+const backToTopButton = document.getElementById('back-to-top');
+
+window.addEventListener('scroll', () => {
+  if (window.pageYOffset > 300) { // Mostra o botão após 300px de rolagem
+    backToTopButton.classList.add('visible');
+  } else {
+    backToTopButton.classList.remove('visible');
+  }
+});
+
+backToTopButton.addEventListener('click', () => {
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  });
+});
+
+// ===== Renderiza Ícones Lucide =====
+// Chamada final para garantir que todos os ícones sejam renderizados
+if (window.lucide) {
+    lucide.createIcons();
+}
